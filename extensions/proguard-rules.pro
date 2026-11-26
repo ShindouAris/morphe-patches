@@ -11,3 +11,8 @@
 -keep class !kotlin.**,!kotlinx.**,** {
     *;
 }
+
+# Annotation-only dependencies pulled in by the bundled Car App Library; absent at run time.
+-dontwarn javax.lang.model.**
+-dontwarn com.google.errorprone.annotations.**
+-dontwarn java.lang.reflect.AnnotatedType

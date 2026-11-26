@@ -10,17 +10,16 @@ plugins {
     alias(libs.plugins.animalsniffer)
 }
 
-group = "app.template"
+group = "org.ungoogled"
 
 patches {
-    // TODO: Update this section with your project details.
     about {
-        name = "UserXYZ Patches"
-        description = "Patches for apps I like"
-        source = "git@github.com:UserXYZ/morphe-patches.git"
-        author = "Awesome dev"
-        contact = "na"
-        website = "na"
+        name = "ShindouAris Patches"
+        description = "Patches for Google Maps: privacy, de-Googling and UI changes. Based on the Ungoogled Maps patches by bearinmindcat."
+        source = "git@github.com:ShindouAris/morphe-patches.git"
+        author = "ShindouAris"
+        contact = "https://github.com/ShindouAris"
+        website = "https://github.com/ShindouAris/morphe-patches"
         license = "GPLv3"
     }
 }

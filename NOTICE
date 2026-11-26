@@ -19,3 +19,15 @@ provided that such references:
 - Are accurate, factual, and non-misleading;
 - Do not suggest authorship by the Morphe project; and
 - Appear only in a secondary or descriptive context, not as part of the product or project name.
+
+
+Third-party code
+================
+
+The Google Maps patches (patches/src/main/kotlin/org/ungoogled/patches/maps and
+patches/src/main/kotlin/org/ungoogled/patches/shared) and the Maps extension
+(extensions/extension) are derived from https://github.com/bearinmindcat/morphe-patches,
+Copyright (C) bearinmindcat, licensed under the GNU General Public License v3.0.
+
+The microG support patches follow the approach of the GmsCore support patches of
+ReVanced / Morphe and of https://github.com/fangkampanat/gmaps-patches (GPLv3).

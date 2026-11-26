@@ -1,22 +1,25 @@
-# 👋🧩 Morphe Patches template
+# ShindouAris Patches
 
-Template repository for Morphe Patches.
+Patches for Google Maps, for use with [Morphe Manager](https://morphe.software).
 
-## ❓ About
+## About
 
-Patches for apps I like.
+Privacy, de-Googling and UI patches for Google Maps. The Maps patches are based on the
+[Ungoogled Maps patches by bearinmindcat](https://github.com/bearinmindcat/morphe-patches)
+(see [Credits](#credits)), with some removed and some added.
 
-<!-- TODO: Update this about section with a brief introduction/summary about this repo and what it offers. -->
+Pinned to Google Maps **26.44.06.1006895251** (APKM from APKMirror). The classes these patches
+target are obfuscated and renamed on every build, so other versions are not expected to work.
 
 ### How to use these patches
 
-Click the button below, or manually add this repo url to Morphe Manager: https://github.com/xyz-user/xyz-patches
+Add this repo URL to Morphe Manager: https://github.com/ShindouAris/morphe-patches
 
-<a href="https://morphe.software/add-source?github=xyz-user/xyz-patches">
+<a href="https://morphe.software/add-source?github=ShindouAris/morphe-patches">
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
 </a>
 
-## 🩹 Patches list
+## Patches list
 
 <!-- PATCHES_START -->
 
@@ -91,15 +94,23 @@ To develop and release your Patches using this template:
      this readme of all developer instructions above. -->
 <!-- PATCHES_END -->
 
-### 🛠️ Building locally
+&nbsp;
 
-- Run `./gradlew buildAndroid`
-- The built patches .mpp file is found in `patches/build/libs/patches-*.mpp`
-- Patch the mpp file using [Morphe-Desktop](https://github.com/MorpheApp/morphe-desktop)
-  like any other patch bundle.
+## Credits
 
-See the [Morphe documentation](https://github.com/MorpheApp/morphe-documentation) for more information.
+The Maps patches and the extension code under `patches/src/main/kotlin/org/ungoogled/patches/maps/`
+and `extensions/extension/` come from **[bearinmindcat/morphe-patches](https://github.com/bearinmindcat/morphe-patches)**
+by **bearinmindcat**, licensed under GPLv3. The original code keeps its original package name
+(`org.ungoogled`). Changes made in this repository are listed in the git history.
 
-## 📜 License
+bearinmindcat's patches in turn follow earlier work, which stays credited where it is used:
 
-UserXYZ Patches are licensed under the [GNU General Public License v3.0](LICENSE)
+- the microG support patches follow the GmsCore support patches of ReVanced / Morphe and
+  [fangkampanat/gmaps-patches](https://github.com/fangkampanat/gmaps-patches) (GPLv3).
+
+Built on the [Morphe](https://morphe.software) patcher and [patches template](https://github.com/MorpheApp/morphe-patches-template).
+This project is not made by or affiliated with Morphe.
+
+## License
+
+[GNU General Public License v3.0](LICENSE). See [NOTICE](NOTICE) for the Morphe name restriction.
