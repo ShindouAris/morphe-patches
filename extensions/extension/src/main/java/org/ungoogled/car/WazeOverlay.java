@@ -78,7 +78,7 @@ final class WazeOverlay implements FrameRelay.Overlay {
     }
 
     @Override
-    public void draw(Canvas canvas, Rect area, float density) {
+    public void draw(Canvas canvas, Rect area, Rect safe, float density) {
         WazeData data = this.data;
         if (data == null || !settings.enabled) return;
         loadFonts();
@@ -109,8 +109,8 @@ final class WazeOverlay implements FrameRelay.Overlay {
 
         boolean right = settings.position == OverlaySettings.TOP_RIGHT;
         float margin = 12 * density;
-        float left = right ? area.right - margin - width : area.left + 112 * density;
-        float top = right ? area.top + margin : area.top + 136 * density;
+        float left = right ? safe.right - margin - width : safe.left + 112 * density;
+        float top = right ? safe.top + margin : safe.top + 136 * density;
         float signsLeft = right ? left + width - signsWidth : left;
 
         // Where it is, in Maps' display coordinates, for the check of what covers it.
