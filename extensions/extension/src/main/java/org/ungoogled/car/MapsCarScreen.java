@@ -160,8 +160,9 @@ final class MapsCarScreen extends Screen {
     public Template onGetTemplate() {
         // The overlay is set on the phone (Customization > Android Auto), and changes there show at once.
         return new NavigationTemplate.Builder()
+                // The template needs an action strip; no map action strip, so the host adds no buttons of its own
+                // over Maps' (it has its own zoom and recentre).
                 .setActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build())
-                .setMapActionStrip(new ActionStrip.Builder().addAction(Action.PAN).build())
                 .build();
     }
 }

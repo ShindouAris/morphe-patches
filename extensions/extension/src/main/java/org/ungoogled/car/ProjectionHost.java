@@ -187,13 +187,14 @@ final class ProjectionHost implements ServiceConnection {
         relay.redraw();
     }
 
-    /** How far down [rect] (Maps' display coordinates) must move to clear Maps' cards; MapsViews.HIDE. Main thread. */
-    int dodge(Rect rect) {
-        if (projection == null || rect == null) return 0;
+    /** How far [rect] (Maps' display coordinates) must move to clear Maps' cards; null: no room. Main thread. */
+    android.graphics.Point dodge(Rect rect) {
+        android.graphics.Point none = new android.graphics.Point();
+        if (projection == null || rect == null) return none;
         try {
             return MapsViews.dodge(MapsViews.root(projection), rect, Math.round(8 * Math.max(1, dpi) / 160f));
         } catch (RuntimeException e) {
-            return 0;
+            return none;
         }
     }
 

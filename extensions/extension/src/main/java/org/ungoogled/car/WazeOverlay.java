@@ -49,17 +49,17 @@ final class WazeOverlay implements FrameRelay.Overlay {
 
     /** Where the overlay was last laid out, in Maps' display coordinates; null before. */
     private volatile Rect bounds;
-    /** How far below its place it is drawn, to clear Maps' cards; MapsViews.HIDE: not drawn. */
-    private volatile int shift;
+    /** How far from its place it is drawn, to clear Maps' cards; null: not drawn. */
+    private volatile android.graphics.Point shift = new android.graphics.Point();
 
     /** Where it goes before any shift, in Maps' display coordinates; null before the first layout. */
     Rect bounds() {
         return bounds;
     }
 
-    /** Moves it down by [shift] pixels, or hides it (MapsViews.HIDE). Returns whether this changed what is shown. */
-    boolean place(int shift) {
-        boolean changed = this.shift != shift;
+    /** Moves it by [shift] pixels, or hides it (null). Returns whether this changed what is shown. */
+    boolean place(android.graphics.Point shift) {
+        boolean changed = !java.util.Objects.equals(this.shift, shift);
         this.shift = shift;
         return changed;
     }
@@ -117,9 +117,11 @@ final class WazeOverlay implements FrameRelay.Overlay {
         float height = clusterHeight + (alert != null ? gap + cardHeight : 0);
         bounds = new Rect((int) (left - area.left), (int) (top - area.top),
                 (int) (left - area.left + width), (int) (top - area.top + height));
-        int shift = this.shift;
-        if (shift == MapsViews.HIDE) return;
-        top += shift;
+        android.graphics.Point shift = this.shift;
+        if (shift == null) return;
+        left += shift.x;
+        signsLeft += shift.x;
+        top += shift.y;
 
         drawLimit(canvas, signsLeft, top, diameter, data.limit);
         boolean over = data.limit >= 10 && data.speed > data.limit || data.overspeed;
