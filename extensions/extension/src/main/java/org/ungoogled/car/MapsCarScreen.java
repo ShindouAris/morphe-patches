@@ -41,6 +41,15 @@ final class MapsCarScreen extends Screen {
     private final WazeOverlay overlay;
     private final Handler main = new Handler(Looper.getMainLooper());
 
+    /** Moves the overlay below Maps' cards in its column, or hides it when there is no room, and back after. */
+    private final Runnable watchPanels = new Runnable() {
+        @Override
+        public void run() {
+            if (overlay.place(maps.dodge(overlay.bounds()))) maps.redraw();
+            main.postDelayed(this, 250);
+        }
+    };
+
     private final SurfaceCallback callback = new SurfaceCallback() {
         @Override
         public void onSurfaceAvailable(@NonNull SurfaceContainer container) {
@@ -105,6 +114,7 @@ final class MapsCarScreen extends Screen {
                 Log.i(TAG, "screen created, registering the surface callback");
                 getCarContext().getCarService(AppManager.class).setSurfaceCallback(callback);
                 WazeModAccessActivity.onGranted = waze::connect;
+                main.post(watchPanels);
                 waze.connect();
             }
 
@@ -113,6 +123,7 @@ final class MapsCarScreen extends Screen {
                 Log.i(TAG, "screen destroyed");
                 WazeModAccessActivity.onGranted = null;
                 waze.close();
+                main.removeCallbacks(watchPanels);
                 settings.close();
                 maps.close();
             }

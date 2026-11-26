@@ -54,6 +54,64 @@ final class MapsViews {
         return null;
     }
 
+    /** [dodge]'s answer when there is no room: the overlay is not drawn. */
+    static final int HIDE = -1;
+
+    /**
+     * How far down [rect] (the overlay, window coordinates) must move to clear the cards and panels of the car UI
+     * in its column: below those in the top half (the search bar, the turn card and its "then" line, a place card),
+     * and above those in the bottom half (the trip card). [HIDE] when it does not fit, as under the search screen.
+     * Cards are views with a background of their own, short of the whole window; the map is drawn by GL.
+     */
+    static int dodge(View root, Rect rect, int gap) {
+        if (root == null || rect == null || root.getWidth() == 0 || root.getHeight() == 0) return 0;
+        long rootArea = (long) root.getWidth() * root.getHeight();
+        java.util.List<Rect> cards = new java.util.ArrayList<>();
+        cards(root, rect, rootArea / 200, rootArea * 98 / 100, cards);
+        int half = root.getHeight() / 2;
+        int top = rect.top, floor = root.getHeight();
+        for (Rect card : cards) {
+            if (card.top < half) top = Math.max(top, card.bottom + gap);
+            else floor = Math.min(floor, card.top - gap);
+        }
+        if (top + rect.height() > floor) return HIDE;
+        Rect moved = new Rect(rect);
+        moved.offsetTo(rect.left, top);
+        for (Rect card : cards) {
+            if (Rect.intersects(card, moved)) return HIDE;
+        }
+        return top - rect.top;
+    }
+
+    /** The cards whose columns meet [rect]'s. */
+    private static void cards(View view, Rect rect, long minArea, long maxArea, java.util.List<Rect> out) {
+        if (!view.isShown() || view instanceof android.view.SurfaceView || view instanceof android.view.TextureView) {
+            return;
+        }
+        Rect visible = new Rect();
+        if (!view.getGlobalVisibleRect(visible)) return;
+        if (visible.right <= rect.left || visible.left >= rect.right) return;
+        long area = (long) visible.width() * visible.height();
+        if (area >= minArea && area <= maxArea && painted(view)) {
+            out.add(visible);
+            return;   // what is inside a card goes with it
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) cards(group.getChildAt(i), rect, minArea, maxArea, out);
+        }
+    }
+
+    /** Whether [view] paints a background of its own (not a transparent colour). */
+    private static boolean painted(View view) {
+        android.graphics.drawable.Drawable background = view.getBackground();
+        if (background == null || !background.isVisible()) return false;
+        if (background instanceof android.graphics.drawable.ColorDrawable) {
+            return ((android.graphics.drawable.ColorDrawable) background).getAlpha() > 0x40;
+        }
+        return background.getAlpha() > 0x40;
+    }
+
     /**
      * The largest list on screen that can scroll up or down, in window coordinates; null if there is none. Views
      * that cover most of the window (the map's containers, which say they scroll) are not lists.

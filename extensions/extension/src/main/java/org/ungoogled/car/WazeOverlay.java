@@ -47,6 +47,23 @@ final class WazeOverlay implements FrameRelay.Overlay {
         this.data = data;
     }
 
+    /** Where the overlay was last laid out, in Maps' display coordinates; null before. */
+    private volatile Rect bounds;
+    /** How far below its place it is drawn, to clear Maps' cards; MapsViews.HIDE: not drawn. */
+    private volatile int shift;
+
+    /** Where it goes before any shift, in Maps' display coordinates; null before the first layout. */
+    Rect bounds() {
+        return bounds;
+    }
+
+    /** Moves it down by [shift] pixels, or hides it (MapsViews.HIDE). Returns whether this changed what is shown. */
+    boolean place(int shift) {
+        boolean changed = this.shift != shift;
+        this.shift = shift;
+        return changed;
+    }
+
     private void loadFonts() {
         if (fontsLoaded) return;
         fontsLoaded = true;
@@ -95,6 +112,14 @@ final class WazeOverlay implements FrameRelay.Overlay {
         float left = right ? area.right - margin - width : area.left + 112 * density;
         float top = right ? area.top + margin : area.top + 136 * density;
         float signsLeft = right ? left + width - signsWidth : left;
+
+        // Where it is, in Maps' display coordinates, for the check of what covers it.
+        float height = clusterHeight + (alert != null ? gap + cardHeight : 0);
+        bounds = new Rect((int) (left - area.left), (int) (top - area.top),
+                (int) (left - area.left + width), (int) (top - area.top + height));
+        int shift = this.shift;
+        if (shift == MapsViews.HIDE) return;
+        top += shift;
 
         drawLimit(canvas, signsLeft, top, diameter, data.limit);
         boolean over = data.limit >= 10 && data.speed > data.limit || data.overspeed;
