@@ -156,11 +156,31 @@ final class ProjectionHost implements ServiceConnection {
 
     private final Runnable sendSpec = this::sendDrawingSpec;
 
-    /** Where Maps' car display sits on the host's Surface. */
+    /** Where Maps' car display sits on the host's Surface: all of it, as on a car (the map goes under the host's cards). */
     private Rect area() {
-        Rect area = new Rect(0, 0, width, height);
-        if (!visible.isEmpty() && !area.intersect(visible)) area.set(0, 0, width, height);
-        return area;
+        return new Rect(0, 0, width, height);
+    }
+
+    /** The part of the Surface the host leaves uncovered. */
+    private Rect safe() {
+        Rect safe = new Rect(0, 0, width, height);
+        if (!visible.isEmpty() && !safe.intersect(visible)) safe.set(0, 0, width, height);
+        return safe;
+    }
+
+    /** ICarProjection: the window's system insets (a Rect of left, top, right, bottom), which Maps lays its UI out in. */
+    private static final int SYSTEM_INSETS = 22;
+    private final Rect sentInsets = new Rect(-1, -1, -1, -1);
+
+    /** Tells Maps where the host's cards and bars are: it moves its UI out of them, as on a car, without relaunching. */
+    private void sendInsets() {
+        if (!started || projection == null) return;
+        Rect safe = safe();
+        Rect insets = new Rect(safe.left, safe.top, width - safe.right, height - safe.bottom);
+        if (insets.equals(sentInsets)) return;
+        sentInsets.set(insets);
+        Log.i(TAG, "insets " + insets);
+        transact(SYSTEM_INSETS, data -> writeParcelable(data, insets));
     }
 
     // Gestures from the host, in Surface coordinates.
@@ -187,13 +207,14 @@ final class ProjectionHost implements ServiceConnection {
         relay.redraw();
     }
 
-    /** How far down [rect] (Maps' display coordinates) must move to clear Maps' cards; MapsViews.HIDE. Main thread. */
-    int dodge(Rect rect) {
-        if (projection == null || rect == null) return 0;
+    /** How far [rect] (Maps' display coordinates) must move to clear Maps' cards; null: no room. Main thread. */
+    android.graphics.Point dodge(Rect rect) {
+        android.graphics.Point none = new android.graphics.Point();
+        if (projection == null || rect == null) return none;
         try {
             return MapsViews.dodge(MapsViews.root(projection), rect, Math.round(8 * Math.max(1, dpi) / 160f));
         } catch (RuntimeException e) {
-            return 0;
+            return none;
         }
     }
 
@@ -244,9 +265,13 @@ final class ProjectionHost implements ServiceConnection {
     private void sendDrawingSpec() {
         Rect area = area();
         relay.destination(area);
+        relay.safe(safe());
         touch.size(area.width(), area.height());
-        // Only the host's Surface changed (it comes back after another screen was shown): Maps keeps drawing.
-        if (started && area.width() == specWidth && area.height() == specHeight) return;
+        // Only the host's Surface or its cards changed: Maps keeps drawing, and moves its UI to the new insets.
+        if (started && area.width() == specWidth && area.height() == specHeight) {
+            sendInsets();
+            return;
+        }
         specWidth = area.width();
         specHeight = area.height();
         Object spec = drawingSpec(area.width(), area.height(), dpi, relay.input(area.width(), area.height()), new Rect());
@@ -279,6 +304,13 @@ final class ProjectionHost implements ServiceConnection {
                     writeParcelable(data, new Configuration(app.getResources().getConfiguration()));
                 });
             }
+            // A new window: give it the insets, now and once its views are up.
+            sentInsets.set(-1, -1, -1, -1);
+            sendInsets();
+            main.postDelayed(() -> {
+                sentInsets.set(-1, -1, -1, -1);
+                sendInsets();
+            }, 1000);
         });
     }
 

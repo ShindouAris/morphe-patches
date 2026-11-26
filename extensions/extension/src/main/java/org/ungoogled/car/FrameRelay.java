@@ -77,7 +77,16 @@ final class FrameRelay {
 
     /** Drawn over every frame, on the host's Surface. */
     interface Overlay {
-        void draw(Canvas canvas, Rect area, float density);
+        /** [area]: Maps' display on the Surface; [safe]: the part of it the host leaves uncovered. */
+        void draw(Canvas canvas, Rect area, Rect safe, float density);
+    }
+
+    private volatile Rect safe;
+
+    /** The part of the host's Surface it leaves uncovered (null: all of it). */
+    void safe(Rect area) {
+        safe = area == null ? null : new Rect(area);
+        post();
     }
 
     private volatile Overlay overlay;
@@ -201,7 +210,9 @@ final class FrameRelay {
                     Overlay over = overlay;
                     if (over != null) {
                         try {
-                            over.draw(canvas, area, density);
+                            Rect uncovered = safe;
+                            if (uncovered == null || !Rect.intersects(uncovered, area)) uncovered = area;
+                            over.draw(canvas, area, uncovered, density);
                         } catch (RuntimeException e) {
                             Log.w(TAG, "frame relay: drawing the overlay", e);
                         }

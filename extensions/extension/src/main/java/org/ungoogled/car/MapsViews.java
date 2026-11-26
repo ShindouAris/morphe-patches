@@ -54,43 +54,61 @@ final class MapsViews {
         return null;
     }
 
-    /** [dodge]'s answer when there is no room: the overlay is not drawn. */
-    static final int HIDE = -1;
-
     /**
-     * How far down [rect] (the overlay, window coordinates) must move to clear the cards and panels of the car UI
-     * in its column: below those in the top half (the search bar, the turn card and its "then" line, a place card),
-     * and above those in the bottom half (the trip card). [HIDE] when it does not fit, as under the search screen.
+     * How far [rect] (the overlay, window coordinates) must move to clear the cards and panels of the car UI; null
+     * when there is no room, as under the search screen. In its own column it goes below the cards of the top half
+     * (the search bar, the turn card and its "then" line, a place card) and above those of the bottom half (the trip
+     * card). When that column is full, as on a small screen, it tries the columns beside the cards, nearest first.
      * Cards are views with a background of their own, short of the whole window; the map is drawn by GL.
      */
-    static int dodge(View root, Rect rect, int gap) {
-        if (root == null || rect == null || root.getWidth() == 0 || root.getHeight() == 0) return 0;
+    static android.graphics.Point dodge(View root, Rect rect, int gap) {
+        if (root == null || rect == null || root.getWidth() == 0 || root.getHeight() == 0) {
+            return new android.graphics.Point();
+        }
         long rootArea = (long) root.getWidth() * root.getHeight();
         java.util.List<Rect> cards = new java.util.ArrayList<>();
-        cards(root, rect, rootArea / 200, rootArea * 98 / 100, cards);
+        cards(root, rootArea / 200, rootArea * 98 / 100, cards);
+
+        java.util.List<Integer> lefts = new java.util.ArrayList<>();
+        lefts.add(rect.left);
+        for (Rect card : cards) {
+            lefts.add(card.right + gap);
+            lefts.add(card.left - gap - rect.width());
+        }
+        lefts.sort((a, b) -> Integer.compare(Math.abs(a - rect.left), Math.abs(b - rect.left)));
+        for (int left : lefts) {
+            if (left < 0 || left + rect.width() > root.getWidth()) continue;
+            Integer top = column(root, cards, rect, left, gap);
+            if (top != null) return new android.graphics.Point(left - rect.left, top - rect.top);
+        }
+        return null;
+    }
+
+    /** Where [rect] goes down to at [left], clear of the cards; null if it does not fit there. */
+    private static Integer column(View root, java.util.List<Rect> cards, Rect rect, int left, int gap) {
+        int right = left + rect.width();
         int half = root.getHeight() / 2;
         int top = rect.top, floor = root.getHeight();
         for (Rect card : cards) {
+            if (card.right <= left || card.left >= right) continue;
             if (card.top < half) top = Math.max(top, card.bottom + gap);
             else floor = Math.min(floor, card.top - gap);
         }
-        if (top + rect.height() > floor) return HIDE;
-        Rect moved = new Rect(rect);
-        moved.offsetTo(rect.left, top);
+        if (top + rect.height() > floor) return null;
+        Rect moved = new Rect(left, top, right, top + rect.height());
         for (Rect card : cards) {
-            if (Rect.intersects(card, moved)) return HIDE;
+            if (Rect.intersects(card, moved)) return null;
         }
-        return top - rect.top;
+        return top;
     }
 
-    /** The cards whose columns meet [rect]'s. */
-    private static void cards(View view, Rect rect, long minArea, long maxArea, java.util.List<Rect> out) {
+    /** The cards on screen. */
+    private static void cards(View view, long minArea, long maxArea, java.util.List<Rect> out) {
         if (!view.isShown() || view instanceof android.view.SurfaceView || view instanceof android.view.TextureView) {
             return;
         }
         Rect visible = new Rect();
         if (!view.getGlobalVisibleRect(visible)) return;
-        if (visible.right <= rect.left || visible.left >= rect.right) return;
         long area = (long) visible.width() * visible.height();
         if (area >= minArea && area <= maxArea && painted(view)) {
             out.add(visible);
@@ -98,7 +116,7 @@ final class MapsViews {
         }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
-            for (int i = 0; i < group.getChildCount(); i++) cards(group.getChildAt(i), rect, minArea, maxArea, out);
+            for (int i = 0; i < group.getChildCount(); i++) cards(group.getChildAt(i), minArea, maxArea, out);
         }
     }
 
