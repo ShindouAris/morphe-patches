@@ -51,7 +51,7 @@ and Brazilian Portuguese.
 ## Patches list
 
 <!-- PATCHES_START -->
-> **[v1.3.1](https://github.com/ShindouAris/morphe-patches/releases/tag/v1.3.1)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**34 patches** across **2 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
+> **[v1.4.0](https://github.com/ShindouAris/morphe-patches/releases/tag/v1.4.0)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`main`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**34 patches** across **2 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
 | # | App | Patches | Version | Package |
 |---|---|---|---|---|
