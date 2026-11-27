@@ -19,6 +19,14 @@ Add this repo URL to Morphe Manager: https://github.com/ShindouAris/morphe-patch
   <img src=".github/assets/add-to-morphe.svg" alt="Add to Morphe" height="48">
 </a>
 
+### Android Auto
+
+The **Android Auto Car App Library** patch makes Android Auto list Google Maps as a navigation app and
+show Maps' own car UI, with Waze Mod and xADAS overlays. It is off by default.
+
+For the Waze overlay you need the Waze Mod app installed on your phone:
+**[Download Waze Mod](https://wazemod.io.vn/en)**.
+
 ## Patches list
 
 <!-- PATCHES_START -->
