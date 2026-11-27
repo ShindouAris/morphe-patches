@@ -240,8 +240,8 @@ private fun BytecodePatchContext.useBundledCarAppLibrary() {
 @Suppress("unused")
 val carAppServicePatch = bytecodePatch(
     name = "Android Auto Car App Library",
-    description = "Experimental. Adds a Car App Library service so Android Auto lists Maps as a navigation app " +
-        "and hands it a surface to draw on. Off by default.",
+    description = "Adds a Car App Library service so Android Auto lists Maps as a navigation app and shows " +
+        "Maps' own car UI on it, with Waze Mod and xADAS overlays. Off by default.",
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_MAPS)
