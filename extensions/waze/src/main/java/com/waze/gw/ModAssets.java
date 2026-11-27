@@ -22,9 +22,9 @@ public final class ModAssets {
     private static final String[] PINS = {
             "bigpin_speed_limit_world_100", "bigpin_speed_limit_world_110", "bigpin_speed_limit_world_120"};
     private static final String[] SUFFIXES = {"", "@2x", "@3x"};
-    /** Lua skins whose colours the patch edits: the skin and the experiment skin next to it, day and night. */
+    /** Lua skins whose colours the patch edits: the skin and the experiment skin next to it, day and night, map editor too. */
     private static final String[] SKIN_DIRECTORIES = {"", "experiment/"};
-    private static final String[] SKIN_VARIANTS = {"day", "night"};
+    private static final String[] SKIN_VARIANTS = {"day", "night", "editor.day", "editor.night"};
     /** Godot scenes of the map; the mod swaps the speedometer's speed and speed-limit positions (tools/patch_pck_speedometer.py). */
     private static final String MAP_SCENES = "waze_map_scenes.pck";
 

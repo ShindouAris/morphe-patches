@@ -3,7 +3,7 @@
 
   python tools/waze_skin_gen.py <stock_decode> <modded_decode> <out_skin_colors.txt>
 
-Both are APKEditor decodes. For the day and night skins (assets/res/skins/default/skin_values.<variant>.lua) every
+Both are APKEditor decodes. For the day, night, editor day and editor night skins (assets/res/skins/default/skin_values.<variant>.lua) every
 `name = rgb(...)`/`rgba(...)` line of the Palette whose value the Mod changes is written as
 
   [night]
@@ -17,7 +17,7 @@ import re
 import sys
 
 PAT = re.compile(r"^([ \t]*)([A-Za-z_][A-Za-z_0-9]*)([ \t]*=[ \t]*)(rgba?\([^)]*\))", re.M)
-VARIANTS = ("day", "night")
+VARIANTS = ("day", "night", "editor.day", "editor.night")
 DIRS = ("", "experiment/")
 
 

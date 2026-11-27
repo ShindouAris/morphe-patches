@@ -6,7 +6,7 @@ import app.morphe.patcher.patch.resourcePatch
 /** Anchor for getResourceAsStream: the patches file's class loader finds waze/ through any of its classes. */
 private object WazeSkinResource
 
-/** waze/skin_colors.txt: "[day]" / "[night]" headers, then "name value" lines (made by tools/waze_skin_gen.py). */
+/** waze/skin_colors.txt: "[day]" / "[night]" / "[editor.day]" / "[editor.night]" headers, then "name value" lines (made by tools/waze_skin_gen.py). */
 private fun readSkinColors(): Map<String, List<Pair<String, String>>> {
     val stream = WazeSkinResource::class.java.getResourceAsStream("/waze/skin_colors.txt")
         ?: throw PatchException("waze/skin_colors.txt is missing from the patches file")
@@ -26,7 +26,7 @@ private fun readSkinColors(): Map<String, List<Pair<String, String>>> {
 
 /**
  * The Mod's map colours (black map background, darker roads and areas, brighter labels) written into Waze's own lua
- * skins: the day and night skins, and the experiment skin next to them that Waze uses when its experiment is on. The
+ * skins: the day and night skins, the map editor's, and the experiment skins next to them that Waze uses when its experiment is on. The
  * `name = rgb(...)` line of each colour is rewritten in place, so nothing else of the skin changes.
  */
 internal val wazeSkinPatch = resourcePatch(
