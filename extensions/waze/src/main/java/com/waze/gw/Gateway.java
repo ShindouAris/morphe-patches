@@ -318,7 +318,7 @@ public final class Gateway {
     private static volatile java.lang.ref.WeakReference<Vignette> mapOverspeedVignette =
             new java.lang.ref.WeakReference<Vignette>(null);
 
-    private static Context ctx() {
+    static Context ctx() {
         if (ctx == null) {
             try {
                 ctx = (Context) Class.forName("android.app.ActivityThread")
@@ -1072,7 +1072,7 @@ public final class Gateway {
      * package to com.chisadin.wazemod, while apktool keeps the resource-table package com.waze.
      * Looking up only by Context.getPackageName() therefore returns zero on every dual build.
      */
-    private static int modResourceId(Context c, String name, String type) {
+    static int modResourceId(Context c, String name, String type) {
         if (c == null || name == null || type == null) return 0;
         int id = c.getResources().getIdentifier(name, type, c.getPackageName());
         if (id == 0 && !"com.waze".equals(c.getPackageName())) {
