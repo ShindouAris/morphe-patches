@@ -27,6 +27,27 @@ show Maps' own car UI, with Waze Mod and xADAS overlays. It is off by default.
 For the Waze overlay you need the Waze Mod app installed on your phone:
 **[Download Waze Mod](https://wazemod.io.vn/en)**.
 
+## Waze Mod
+
+The **Waze Mod** patch adds the Waze Mod features to Waze (`com.waze`) **5.27.90.900**: speed limit
+signs and speed warnings, HUD Link, an Android Auto overlay, alert sounds, xADAS, a darker map and a
+settings screen of its own, found in the Waze menu as **Mod settings**. It has no Vietnam-only parts, apart
+from the recorded Vietnamese voice clips and a support QR code that is shown only to users in Vietnam.
+
+Two optional patches let you sign in with Google without Google Play services:
+**Add microG-RE support for Waze** (for [microG-RE](https://github.com/MorpheApp/MicroG-RE)) and
+**Add original microG support for Waze** (for the original microG).
+
+<p>
+  <img src=".github/assets/waze/navigation.png" alt="Navigation with the speed limit sign and dark map" width="23%">
+  <img src=".github/assets/waze/settings.png" alt="Mod settings menu" width="23%">
+  <img src=".github/assets/waze/hud.png" alt="HUD settings" width="23%">
+  <img src=".github/assets/waze/alerts.png" alt="Alerts and voice settings" width="23%">
+</p>
+
+The screenshots were taken with the app in Vietnamese; the Mod settings also come in English, Japanese
+and Brazilian Portuguese.
+
 ## Patches list
 
 <!-- PATCHES_START -->
