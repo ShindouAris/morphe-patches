@@ -31,6 +31,10 @@ final class XadasClient {
     interface Listener {
         /** The lead vehicle's distance in metres, or -1 when there is none to show. Called on a worker thread. */
         void onDistance(int meters, int verdict);
+
+        /** What xADAS says of this app's access (IXadasLink.ACCESS_*), when it registers and when it changes. */
+        default void onAccess(int access) {
+        }
     }
 
     private final Context app;
@@ -57,6 +61,7 @@ final class XadasClient {
         public void onAccessChanged(int access) {
             worker.post(() -> {
                 Log.i(TAG, "xADAS access changed: " + access);
+                listener.onAccess(access);
                 if (access == IXadasLink.ACCESS_GRANTED) readNow();
                 else listener.onDistance(-1, 0);
             });
@@ -78,6 +83,7 @@ final class XadasClient {
                     int access = api.register(updates);
                     Log.i(TAG, "xADAS api " + api.getApiVersion() + ", access " + access
                             + " (1 granted, 2 asking the user, 3 denied, 4 sharing off or no Pro)");
+                    listener.onAccess(access);
                     if (access == IXadasLink.ACCESS_GRANTED) readNow();
                 } catch (RemoteException | RuntimeException e) {
                     Log.w(TAG, "xADAS call failed", e);

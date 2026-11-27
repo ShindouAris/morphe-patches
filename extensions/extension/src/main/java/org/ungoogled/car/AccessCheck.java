@@ -24,6 +24,38 @@ public final class AccessCheck {
 
     public static final int NOT_INSTALLED = 0, NOT_ALLOWED = 1, ALLOWED = 2, UNREACHABLE = 3;
 
+    /** What xADAS answers to a request: it is asking the user, or sharing is off in xADAS Pro. */
+    public static final int PENDING = 4, SHARING_OFF = 5;
+
+    /**
+     * Asks xADAS for access for Maps (it registers, and xADAS lists Maps in its Settings and asks the user in a
+     * notification), and reports what it answers, now and when it changes. Keeps the connection until the returned
+     * Runnable is run. Results come on the main thread.
+     */
+    public static Runnable requestXadas(Context context, Result result) {
+        Handler main = new Handler(Looper.getMainLooper());
+        Context app = context.getApplicationContext();
+        if (!XadasClient.trusted(app)) {
+            main.post(() -> result.onResult(NOT_INSTALLED));
+            return () -> { };
+        }
+        XadasClient client = new XadasClient(app, new XadasClient.Listener() {
+            @Override
+            public void onDistance(int meters, int verdict) {
+            }
+
+            @Override
+            public void onAccess(int access) {
+                int mapped = access == IXadasLink.ACCESS_GRANTED ? ALLOWED
+                        : access == IXadasLink.ACCESS_PENDING ? PENDING
+                        : access == IXadasLink.ACCESS_DISABLED ? SHARING_OFF : NOT_ALLOWED;
+                main.post(() -> result.onResult(mapped));
+            }
+        });
+        client.start();
+        return client::close;
+    }
+
     public interface Result {
         /** One of the constants above. Called on the main thread. */
         void onResult(int access);

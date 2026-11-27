@@ -110,7 +110,11 @@ public final class Vi {
         p("Lets Maps read speed, speed limit and alerts from Waze Mod, for the overlay on Android Auto",
                 "Cho Maps đọc tốc độ, giới hạn tốc độ và cảnh báo từ Waze Mod để hiện lớp phủ trên Android Auto");
         p("Waze Mod with the Data API is not installed", "Chưa cài Waze Mod có Data API");
-        p("Open xADAS", "Mở xADAS");
+        p("Request xADAS permission", "Yêu cầu quyền xADAS");
+        p("Maps is already allowed in xADAS", "Maps đã được cấp quyền trong xADAS");
+        p("Allow Maps in xADAS: open its notification or Settings", "Hãy cho phép Maps trong xADAS: mở thông báo hoặc Cài đặt của xADAS");
+        p("Turn on sharing with other apps in xADAS Pro Settings first", "Hãy bật chia sẻ với ứng dụng khác trong Cài đặt xADAS Pro trước");
+        p("Maps is turned off in xADAS Settings", "Maps đang bị tắt trong Cài đặt xADAS");
         p("Distance to the vehicle ahead. In xADAS Pro turn on sharing with other apps, then allow Maps",
                 "Khoảng cách tới xe phía trước. Trong xADAS Pro bật chia sẻ với ứng dụng khác, rồi cho phép Maps");
         p("xADAS is not installed", "Chưa cài xADAS");

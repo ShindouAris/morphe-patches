@@ -184,16 +184,8 @@ public final class CustomizationActivity extends Activity {
         wazeSub = (TextView) ((LinearLayout) wazeRow.getChildAt(0)).getChildAt(1);
 
         // xADAS (Pro): the distance to the vehicle ahead. xADAS asks the user itself once Maps connects.
-        LinearLayout xadasRow = rowBase("Open xADAS",
-                "Distance to the vehicle ahead. In xADAS Pro turn on sharing with other apps, then allow Maps");
-        xadasRow.setOnClickListener(v -> {
-            Intent open = getPackageManager().getLaunchIntentForPackage("com.kaibatech.drivedeck.xadas");
-            if (open == null) {
-                Toast.makeText(this, Vi.t("xADAS is not installed"), Toast.LENGTH_LONG).show();
-                return;
-            }
-            startActivity(open);
-        });
+        LinearLayout xadasRow = rowBase("Request xADAS permission", XADAS_DESC);
+        xadasRow.setOnClickListener(v -> requestXadas());
         body.addView(xadasRow);
         xadasSub = (TextView) ((LinearLayout) xadasRow.getChildAt(0)).getChildAt(1);
         refreshAccess();
@@ -230,6 +222,38 @@ public final class CustomizationActivity extends Activity {
             });
         });
         body.addView(sizeRow);
+    }
+
+    private Runnable xadasRequest;
+
+    /**
+     * Asks xADAS for access for Maps: xADAS then lists Maps in its Settings and asks the user in a notification (what
+     * it says is shown, and xADAS is opened to finish there). The connection is kept while this screen is open.
+     */
+    private void requestXadas() {
+        if (xadasRequest != null) xadasRequest.run();
+        xadasRequest = org.ungoogled.car.AccessCheck.requestXadas(this, access -> {
+            if (isFinishing() || isDestroyed()) return;
+            String message;
+            switch (access) {
+                case org.ungoogled.car.AccessCheck.ALLOWED: message = "Maps is already allowed in xADAS"; break;
+                case org.ungoogled.car.AccessCheck.PENDING: message = "Allow Maps in xADAS: open its notification or Settings"; break;
+                case org.ungoogled.car.AccessCheck.SHARING_OFF: message = "Turn on sharing with other apps in xADAS Pro Settings first"; break;
+                case org.ungoogled.car.AccessCheck.NOT_INSTALLED: message = "xADAS is not installed"; break;
+                default: message = "Maps is turned off in xADAS Settings"; break;
+            }
+            Toast.makeText(this, Vi.t(message), Toast.LENGTH_LONG).show();
+            refreshAccess();
+            if (access != org.ungoogled.car.AccessCheck.ALLOWED && access != org.ungoogled.car.AccessCheck.NOT_INSTALLED) {
+                Intent open = getPackageManager().getLaunchIntentForPackage("com.kaibatech.drivedeck.xadas");
+                if (open != null) startActivity(open);
+            }
+        });
+    }
+
+    @Override protected void onDestroy() {
+        if (xadasRequest != null) xadasRequest.run();
+        super.onDestroy();
     }
 
     private TextView wazeSub, xadasSub;
