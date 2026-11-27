@@ -54,8 +54,6 @@ final class Region {
 
     /** True while the car is in Vietnam (or, with no position yet, while the Mod is shown in Vietnamese). */
     static boolean inVietnam() {
-        // The Morphe edition is for drivers outside Vietnam: the Vietnamese road-rule features stay off.
-        if (true) return false;
         int known = state;
         if (known != 0) return known == 1;
         restore();
