@@ -1,4 +1,4 @@
-## [1.3.0-dev.3](https://github.com/ShindouAris/morphe-patches/compare/v1.3.0-dev.2...v1.3.0-dev.3) (2026-11-27)
+## [1.4.0](https://github.com/ShindouAris/morphe-patches/compare/v1.3.1...v1.4.0) (2026-11-27)
 
 ### ✨ New Features
 
@@ -15,13 +15,13 @@
 * **waze:** set the map editor's colours too ([3b57fa4](https://github.com/ShindouAris/morphe-patches/commit/3b57fa43398f74209fa326d311ef37a4339373e7))
 * **waze:** write the map colours into Waze's lua skins instead of shipping copies ([a6b6fac](https://github.com/ShindouAris/morphe-patches/commit/a6b6facb4b7819d2105a1012809fcf684052a913))
 
-## [1.3.0-dev.2](https://github.com/ShindouAris/morphe-patches/compare/v1.3.0-dev.1...v1.3.0-dev.2) (2026-11-27)
+## [1.3.1](https://github.com/ShindouAris/morphe-patches/compare/v1.3.0...v1.3.1) (2026-11-27)
 
 ### 🐛 Bug Fixes
 
 * maps finds the Waze Mod tester build and says when its Data API is missing ([4fbfa9e](https://github.com/ShindouAris/morphe-patches/commit/4fbfa9ec3901c82521c5bd91d4acbf31b1d5f25c))
 
-## [1.3.0-dev.1](https://github.com/ShindouAris/morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-27)
+## [1.3.0](https://github.com/ShindouAris/morphe-patches/compare/v1.2.0...v1.3.0) (2026-11-27)
 
 ### ✨ New Features
 
