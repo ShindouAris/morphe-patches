@@ -1,15 +1,20 @@
 # ShindouAris Patches
 
-Patches for Google Maps, for use with [Morphe Manager](https://morphe.software).
+Patches for driving apps, for use with [Morphe Manager](https://morphe.software).
 
 ## About
 
-Privacy, de-Googling and UI patches for Google Maps. The Maps patches are based on the
-[Ungoogled Maps patches by bearinmindcat](https://github.com/bearinmindcat/morphe-patches)
-(see [Credits](#credits)), with some removed and some added.
+Patches for two navigation apps:
 
-Pinned to Google Maps **26.44.06.1006895251** (APKM from APKMirror). The classes these patches
-target are obfuscated and renamed on every build, so other versions are not expected to work.
+- **Google Maps**: privacy, de-Googling and UI patches, based on the
+  [Ungoogled Maps patches by bearinmindcat](https://github.com/bearinmindcat/morphe-patches)
+  (see [Credits](#credits)), with some removed and some added.
+- **Waze**: the Waze Mod, which adds speed limit signs, speed warnings, HUD Link, an Android Auto
+  overlay and more, with optional microG sign-in. See [Waze Mod](#waze-mod).
+
+Each app is pinned to one version: Google Maps **26.44.06.1006895251** and Waze **5.27.90.900**, both as an
+APKM from APKMirror. The classes the patches target are obfuscated and renamed on every build, so other
+versions are not expected to work.
 
 ### How to use these patches
 
