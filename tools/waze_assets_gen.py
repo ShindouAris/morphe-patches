@@ -6,7 +6,7 @@
 Both are APKEditor decodes of the APK: a `root` directory with `assets` below it, and a path-map.json that gives the
 real name of the files APKEditor renamed to alias_XXXX. Every file under assets/ that the Mod adds
 or changes is copied to <out_dir>/<path below assets/>, and <out_dir>/index.txt lists them. The International edition
-leaves out what is for Vietnam only (the donate QR, the Vietnamese voice packs, the Vietnamese highway-distance
+leaves out what is for Vietnam only (the donate QR and the Vietnamese highway-distance
 pictures), what is bulk the Mod never loads (the unused JetBrains Mono styles and archive) and the build-info files,
 which the patch writes itself.
 """
@@ -18,8 +18,6 @@ import sys
 
 SKIP_PREFIXES = (
     "donate/",
-    "voice_short/",
-    "voice_waze/",
     "wz_mood_khoangcach_caotoc/",
     "gw_fonts/JetBrains_Mono.zip",
     "gw_fonts/JetBrains_Mono/JetBrainsMono-",
