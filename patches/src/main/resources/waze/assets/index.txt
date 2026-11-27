@@ -1,3 +1,4 @@
+donate/donate_qr.png
 gw_fonts/Anta-OFL.txt
 gw_fonts/Anta-Regular.ttf
 gw_fonts/JetBrains_Mono/OFL.txt
