@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-27T05:17:43",
-  "description": "## [1.2.0](https://github.com/ShindouAris/morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-27)\n\n### ✨ New Features\n\n* **maps:** show the distance to the vehicle ahead from xADAS Pro on the car overlay ([63a49ef](https://github.com/ShindouAris/morphe-patches/commit/63a49ef231e42208abe62e8fe46cae41c152c3fa))\n* **maps:** Vietnamese texts for the mod's screens when the app language is Vietnamese ([7487d79](https://github.com/ShindouAris/morphe-patches/commit/7487d793a10552fc55405fd0bb1126bb3f0d5ab2))",
-  "download_url": "https://github.com/ShindouAris/morphe-patches/releases/download/v1.2.0/patches-1.2.0.mpp",
+  "created_at": "2026-11-27T06:00:01",
+  "description": "## [1.3.0-dev.1](https://github.com/ShindouAris/morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-27)\n\n### ✨ New Features\n\n* **maps:** Customization asks xADAS for access from the phone, so Maps is listed in xADAS Settings ([b37693f](https://github.com/ShindouAris/morphe-patches/commit/b37693fb8a1c62bb5093c06f8473514aefc41e1c))",
+  "download_url": "https://github.com/ShindouAris/morphe-patches/releases/download/v1.3.0-dev.1/patches-1.3.0-dev.1.mpp",
   "signature_download_url": "",
-  "version": "1.2.0"
+  "version": "1.3.0-dev.1"
 }
