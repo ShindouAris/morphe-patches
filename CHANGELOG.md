@@ -1,3 +1,10 @@
+## [1.2.0](https://github.com/ShindouAris/morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-27)
+
+### ✨ New Features
+
+* **maps:** show the distance to the vehicle ahead from xADAS Pro on the car overlay ([63a49ef](https://github.com/ShindouAris/morphe-patches/commit/63a49ef231e42208abe62e8fe46cae41c152c3fa))
+* **maps:** Vietnamese texts for the mod's screens when the app language is Vietnamese ([7487d79](https://github.com/ShindouAris/morphe-patches/commit/7487d793a10552fc55405fd0bb1126bb3f0d5ab2))
+
 ## [1.1.0](https://github.com/ShindouAris/morphe-patches/compare/v1.0.0...v1.1.0) (2026-11-26)
 
 ### ✨ New Features
