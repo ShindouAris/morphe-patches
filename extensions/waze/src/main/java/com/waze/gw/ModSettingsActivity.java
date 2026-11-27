@@ -237,13 +237,6 @@ public class ModSettingsActivity extends Activity {
             setContentView(narrowHost);
             showCategoryMenu();
         }
-
-        try {
-            if (getIntent() != null && getIntent().getBooleanExtra("ota_check", false)) {
-                openCategory(CAT_UPDATES);
-                Updater.checkNow(this);
-            }
-        } catch (Throwable ignored) { }
     }
 
     /** Warn before subscribing to the experimental Reimei update channel. */
@@ -998,23 +991,6 @@ public class ModSettingsActivity extends Activity {
 
         LinearLayout updates = addCategory(root, I18n.tr("settings.updates_map_data"),
                 I18n.tr("settings.mod_version_and_waze_map_release"));
-        addSwitch(updates, I18n.tr("settings.check_automatically_when_the_app_opens"), "ota_auto", false,
-                new BoolCb() {
-                    @Override public void on(boolean enabled) {
-                        Updater.onAutoSettingChanged(enabled);
-                    }
-                });
-        addChoice(updates, I18n.tr("settings.update_channel"), "ota_channel",
-                new int[]{0, 1}, new String[]{"Stable", "Reimei (Beta)"}, 0);
-        addChoice(updates, I18n.tr("settings.install_updates_with"), "ota_installer",
-                new int[]{0, 1, 2},
-                new String[]{I18n.tr("settings.system_installer"), "KingInstaller", "AAEnabler"}, 0);
-        LinearLayout otaRow = row(updates, I18n.tr("settings.check_for_updates"));
-        otaRow.setClickable(true);
-        otaRow.setOnClickListener(new android.view.View.OnClickListener() {
-            @Override public void onClick(android.view.View v) { Updater.checkNow(ModSettingsActivity.this); }
-        });
-
         addMapBuildStatus(updates);
 
         // addSection(root, "Thử nghiệm");
@@ -1031,11 +1007,6 @@ public class ModSettingsActivity extends Activity {
 
         setContentView(scroll);
         fetchMapBuildStatus();
-
-        // opened from the OTA notification -> jump straight into the update prompt
-        try {
-            if (getIntent() != null && getIntent().getBooleanExtra("ota_check", false)) Updater.checkNow(this);
-        } catch (Throwable t) { /* ignore */ }
     }
 
     /**
@@ -1689,25 +1660,7 @@ public class ModSettingsActivity extends Activity {
                     });
             addServerDisabledFeatureSwitches(root);
         } else if (CAT_UPDATES.equals(id)) {
-            addSection(root, I18n.tr("settings.updates"));
-            addChoice(root, I18n.tr("settings.update_channel"), "ota_channel",
-                    new int[]{0, 1}, new String[]{"Stable", "Reimei (Beta)"}, 0);
-            addChoice(root, I18n.tr("settings.install_updates_with"), "ota_installer",
-                    new int[]{0, 1, 2},
-                    new String[]{I18n.tr("settings.system_installer"), "KingInstaller", "AAEnabler"}, 0);
-            addSwitch(root, I18n.tr("settings.check_automatically_when_the_app_opens"), "ota_auto", false,
-                    new BoolCb() {
-                        @Override public void on(boolean enabled) {
-                            Updater.onAutoSettingChanged(enabled);
-                        }
-                    });
-            LinearLayout otaRow = row(root, I18n.tr("settings.check_for_updates"));
-            otaRow.setClickable(true);
-            otaRow.setOnClickListener(new View.OnClickListener() {
-                @Override public void onClick(View view) { Updater.checkNow(ModSettingsActivity.this); }
-            });
             addMapBuildStatus(root);
-            addModDatasetStatus(root);
             addSection(root, I18n.tr("settings.settings_backup"));
             addSettingsTransferAction(root, I18n.tr("settings.export_mod_settings"),
                     I18n.tr("settings.save_the_user_configuration_as_a"), true);
@@ -1734,10 +1687,7 @@ public class ModSettingsActivity extends Activity {
         return scroll;
     }
 
-    // ---- "Thông tin & ủng hộ": build metadata and the donation QR ----
-    private static final String DONATE_BANK = "BIDV";
-    private static final String DONATE_HOLDER = "TRAN THANH NAM";
-    private static final String DONATE_ACCOUNT = "8869307433";
+    // ---- About: build metadata ----
 
     private void addAboutSettings(LinearLayout root) {
         addSection(root, I18n.tr("settings.about_this_mod"));
@@ -1750,100 +1700,6 @@ public class ModSettingsActivity extends Activity {
         } catch (Throwable ignored) { }
         addInfoCard(root, I18n.tr("settings.original_waze"), I18n.f("settings.version_0_app_package_1", wazeVersion, getPackageName()));
 
-        addSection(root, I18n.tr("settings.support_the_author"));
-        addInfoCard(root, I18n.tr("settings.buy_the_author_a_coffee"),
-                I18n.tr("settings.the_project_is_made_in_spare"));
-        addAboutAction(root, I18n.tr("settings.support_via_qr_code"), I18n.tr("settings.scan_with_any_banking_app"), new Runnable() {
-            @Override public void run() { showDonateDialog(); }
-        });
-    }
-
-    private void addAboutAction(LinearLayout root, String title, String detail, final Runnable onClick) {
-        LinearLayout action = new LinearLayout(this);
-        action.setOrientation(LinearLayout.HORIZONTAL);
-        action.setGravity(Gravity.CENTER_VERTICAL);
-        action.setPadding(dp(15), dp(13), dp(13), dp(13));
-        styleControlHover(action, false);
-        enableControlHover(action);
-        LinearLayout labels = new LinearLayout(this);
-        labels.setOrientation(LinearLayout.VERTICAL);
-        TextView heading = new TextView(this);
-        heading.setText(title);
-        heading.setTextSize(17);
-        heading.setTextColor(COLOR_TEXT);
-        heading.setTypeface(Typeface.DEFAULT_BOLD);
-        labels.addView(heading);
-        TextView description = new TextView(this);
-        description.setText(detail);
-        description.setTextSize(13);
-        description.setTextColor(COLOR_MUTED);
-        description.setPadding(0, dp(3), 0, 0);
-        labels.addView(description);
-        action.addView(labels, new LinearLayout.LayoutParams(0, ViewGroup.LayoutParams.WRAP_CONTENT, 1f));
-        TextView arrow = new TextView(this);
-        arrow.setText("›");
-        arrow.setTextSize(25);
-        arrow.setTextColor(COLOR_ACCENT);
-        arrow.setGravity(Gravity.CENTER);
-        action.addView(arrow, new LinearLayout.LayoutParams(dp(42), dp(46)));
-        action.setOnClickListener(new View.OnClickListener() {
-            @Override public void onClick(View view) { onClick.run(); }
-        });
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT);
-        lp.topMargin = dp(8);
-        root.addView(action, lp);
-    }
-
-    /** QR (bundled asset) plus the bank details, with a button to copy the account number. */
-    private void showDonateDialog() {
-        LinearLayout body = new LinearLayout(this);
-        body.setOrientation(LinearLayout.VERTICAL);
-        body.setGravity(Gravity.CENTER_HORIZONTAL);
-        body.setPadding(dp(18), dp(14), dp(18), dp(6));
-
-        android.widget.ImageView qr = new android.widget.ImageView(this);
-        qr.setAdjustViewBounds(true);
-        qr.setBackgroundColor(0xFFFFFFFF);   // the QR artwork has a white background; keep it scannable in dark mode
-        java.io.InputStream in = null;
-        try {
-            in = getAssets().open("donate/donate_qr.png");
-            qr.setImageBitmap(BitmapFactory.decodeStream(in));
-        } catch (Throwable ignore) {
-        } finally {
-            if (in != null) try { in.close(); } catch (Throwable ignore) { }
-        }
-        body.addView(qr, new LinearLayout.LayoutParams(dp(250), ViewGroup.LayoutParams.WRAP_CONTENT));
-
-        TextView info = new TextView(this);
-        info.setText(I18n.f("settings.bank_0_account_holder_1_account", DONATE_BANK, DONATE_HOLDER, DONATE_ACCOUNT));
-        info.setTextSize(15);
-        info.setTextColor(COLOR_TEXT);
-        info.setPadding(0, dp(12), 0, 0);
-        body.addView(info);
-        TextView note = new TextView(this);
-        note.setText(I18n.tr("settings.support_is_entirely_voluntary_and_is"));
-        note.setTextSize(12);
-        note.setTextColor(COLOR_MUTED);
-        note.setPadding(0, dp(8), 0, 0);
-        body.addView(note);
-
-        android.app.AlertDialog.Builder builder = new android.app.AlertDialog.Builder(this);
-        builder.setTitle(I18n.tr("settings.support_the_author"));
-        builder.setView(body);
-        builder.setPositiveButton(I18n.tr("settings.copy_account_number"), new android.content.DialogInterface.OnClickListener() {
-            @Override public void onClick(android.content.DialogInterface dialog, int which) {
-                try {
-                    android.content.ClipboardManager clipboard =
-                            (android.content.ClipboardManager) getSystemService(CLIPBOARD_SERVICE);
-                    clipboard.setPrimaryClip(android.content.ClipData.newPlainText(I18n.tr("settings.account_number"), DONATE_ACCOUNT));
-                    android.widget.Toast.makeText(ModSettingsActivity.this, I18n.tr("settings.account_number_copied"),
-                            android.widget.Toast.LENGTH_SHORT).show();
-                } catch (Throwable ignored) { }
-            }
-        });
-        builder.setNegativeButton(I18n.tr("report.close"), null);
-        builder.show();
     }
 
     private void addTripBlackBoxSettings(LinearLayout root) {

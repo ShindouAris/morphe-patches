@@ -35,6 +35,8 @@ final class WazeDialogs {
     private WazeDialogs() {}
 
     static void showAuthenticityNoticeOnce(final View anchor) {
+        // The notice points to the Mod's own site and APK downloads; the Morphe edition is patched on the device.
+        if (true) return;
         if (anchor == null) return;
         final Context c = anchor.getContext();
         if (isSeen(c) || pending || attempts >= MAX_SHOW_ATTEMPTS) return;

@@ -2133,14 +2133,10 @@ public final class Gateway {
         try {
             // Each step is isolated: one failing feature must not stop the others (or the logic below).
             try { configureSpeedDropNativeOnce(); } catch (Throwable t) { speedoStepFailed("speed-drop", t); }
-            try { RoadNoticeClient.start(ctx()); } catch (Throwable t) { speedoStepFailed("road-notice", t); } // idempotent; own worker
-            try { PointNoticeClient.start(ctx()); } catch (Throwable t) { speedoStepFailed("point-notice", t); }
             try { CustomNativeAlerts.evaluateHeadlightReminder(ctx()); } catch (Throwable t) { speedoStepFailed("headlight", t); }
             // Restore HUD Link after Android recreates Waze's process/service. The facade is
             // rate-limited and returns immediately while the service is alive.
             try { HudLink.ensureStarted(ctx()); } catch (Throwable t) { speedoStepFailed("hud-link", t); }
-            // OTA: check for a newer build once per app open (auto path -> notification)
-            try { Updater.ensureChecked(); } catch (Throwable t) { speedoStepFailed("updater", t); }
             // re-apply optional force-on flags; self-throttled to every 30 s
             try { WazeFeatureOverrides.tick(); } catch (Throwable t) { speedoStepFailed("feature-overrides", t); }
             try { DrivingBreakReminder.onSpeed(ctx(), speed, units); } catch (Throwable t) { speedoStepFailed("break-reminder", t); }
