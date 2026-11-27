@@ -45,8 +45,16 @@ private val PUSH_ACTIONS_USED = listOf(
     "com.google.android.c2dm.intent.RECEIVE", "com.google.iid.TOKEN_REQUEST",
 )
 
+/**
+ * The type of a Google ID token credential. microG-RE (7.4.0) answers Credential Manager requests for it only under
+ * its own name, and hands the credential back under it too, so an app keeping Google's gets "no credential".
+ */
+private const val GOOGLE_ID_TYPE = "com.google.android.libraries.identity.googleid.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL"
+private const val GOOGLE_ID_TYPE_RE = "app.revanced.android.libraries.identity.googleid.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL"
+
 /** microG-RE's name for a Play services name in Waze's code, its push actions included; null if it is none. */
-private fun route(value: String): String? = MicrogRe.route(value) ?: MicrogRe.PUSH_ACTION_ROUTES[value]
+private fun route(value: String): String? =
+    MicrogRe.route(value) ?: MicrogRe.PUSH_ACTION_ROUTES[value] ?: GOOGLE_ID_TYPE_RE.takeIf { value == GOOGLE_ID_TYPE }
 
 private val wazeMicrogManifestPatch = resourcePatch(
     description = "Points the manifest's Play services permissions at microG-RE and tells it which app to vouch for.",
@@ -173,6 +181,7 @@ val wazeMicrogSupportPatch = bytecodePatch(
         }
         var rewritten = 0
         val pushActions = mutableSetOf<String>()
+        var idTypes = 0
         for (type in holders) {
             for (method in mutableClassDefBy(type).methods) {
                 val instructions = method.implementation?.instructions?.toList() ?: continue
@@ -185,9 +194,12 @@ val wazeMicrogSupportPatch = bytecodePatch(
                     method.replaceInstruction(index, "$opcode v$register, \"$to\"")
                     rewritten++
                     if (value in MicrogRe.PUSH_ACTION_ROUTES) pushActions += value
+                    if (value == GOOGLE_ID_TYPE) idTypes++
                 }
             }
         }
+        // The Google ID option Waze asks for, the credential class it reads the answer with, and the check of the type.
+        if (idTypes != 3) throw PatchException("expected 3 Google ID credential types in Waze, found $idTypes")
         // Measured on Waze 5.27.90.900: about 58 names in the bundled Play services client libraries.
         if (rewritten < 40) throw PatchException("rewrote only $rewritten Play services names; Waze changed shape")
         val missing = PUSH_ACTIONS_USED - pushActions
