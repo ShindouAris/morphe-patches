@@ -1,6 +1,6 @@
 # Patches
 
-> Generated from `patches-list.json` — **v1.2.0** (`main`) · **31 patches** across **1 app** · back to [README](README.md)
+> Generated from `patches-list.json` — **v1.3.0-dev.1** (`dev`) · **31 patches** across **1 app** · back to [README](README.md)
 
 ---
 
@@ -14,7 +14,7 @@
 | **Account sheet cleanup** | Removes the "More from this app" label from the account sheet, and keeps the sheet open when you come back from Settings or Customization or tap "Your profile", instead of dropping back to the map. |
 | **Add microG-RE support** | Builds microG Maps, a separate app that signs in to your Google account through microG-RE (MicroG-RE or ReVanced GmsCore). Not for root installs; for original microG, use Add original microG support. |
 | **Add original microG support** | Signs in through original microG on ROMs with signature spoofing. Keeps Maps' own package name; allow signature spoofing for it. |
-| **Android Auto Car App Library** | Experimental. Adds a Car App Library service so Android Auto lists Maps as a navigation app and hands it a surface to draw on. Off by default. |
+| **Android Auto Car App Library** | Adds a Car App Library service so Android Auto lists Maps as a navigation app and shows Maps' own car UI on it, with Waze Mod and xADAS overlays. Off by default. |
 | **Any media app** | Navigation's Default media app (Settings &gt; Navigation) offers every music and podcast app that works with Android Auto, such as Poweramp, also where Google switches media controls off. YouTube Music and Spotify only connect to Google's own Maps. |
 | **Better offline maps** | Reworks the offline area picker: zooming out really selects more instead of being shrunk to Google's size cap, the box can be resized by dragging its edges and corners, a large area is split into several downloads whose true total size is shown, and areas already downloaded are drawn on the map. Can be turned off on the Customization screen. |
 | **Black theme** | AMOLED-black theme. Pins Maps' own dark mode and its separate navigation colour scheme, and remaps colour resources, drawable fills and draw-time paints so no surface is left grey. |

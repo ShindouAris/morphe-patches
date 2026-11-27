@@ -1,3 +1,9 @@
+## [1.3.0-dev.1](https://github.com/ShindouAris/morphe-patches/compare/v1.2.0...v1.3.0-dev.1) (2026-11-27)
+
+### ✨ New Features
+
+* **maps:** Customization asks xADAS for access from the phone, so Maps is listed in xADAS Settings ([b37693f](https://github.com/ShindouAris/morphe-patches/commit/b37693fb8a1c62bb5093c06f8473514aefc41e1c))
+
 ## [1.2.0](https://github.com/ShindouAris/morphe-patches/compare/v1.1.0...v1.2.0) (2026-11-27)
 
 ### ✨ New Features
