@@ -66,7 +66,7 @@ val wazeModPatch = bytecodePatch(
     default = false,
 ) {
     compatibleWith(COMPATIBILITY_WAZE)
-    dependsOn(wazeManifestPatch, wazeAssetsPatch)
+    dependsOn(wazeManifestPatch, wazeAssetsPatch, wazeSkinPatch)
 
     extendWith("extensions/waze.mpe")
     extendWith("extensions/waze-smali.mpe")

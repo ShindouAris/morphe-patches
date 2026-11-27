@@ -13,7 +13,7 @@ import java.io.OutputStream;
 /**
  * Waze extracts assets/res into its private data directory and only does it again when the app's versionCode
  * grows, so a mod build that edits a packaged image or the map scenes would keep running the stock ones. This copies
- * the mod-edited files (see SKIN_FILES, MAP_SCENES) into that cache after Waze has prepared it (hooked at the end of
+ * the mod-edited files (see PINS, SKIN_VARIANTS, MAP_SCENES) into that cache after Waze has prepared it (hooked at the end of
  * com.waze.resources.g.a()).
  */
 public final class ModAssets {
@@ -22,6 +22,9 @@ public final class ModAssets {
     private static final String[] PINS = {
             "bigpin_speed_limit_world_100", "bigpin_speed_limit_world_110", "bigpin_speed_limit_world_120"};
     private static final String[] SUFFIXES = {"", "@2x", "@3x"};
+    /** Lua skins whose colours the patch edits: the skin and the experiment skin next to it, day and night. */
+    private static final String[] SKIN_DIRECTORIES = {"", "experiment/"};
+    private static final String[] SKIN_VARIANTS = {"day", "night"};
     /** Godot scenes of the map; the mod swaps the speedometer's speed and speed-limit positions (tools/patch_pck_speedometer.py). */
     private static final String MAP_SCENES = "waze_map_scenes.pck";
 
@@ -41,6 +44,14 @@ public final class ModAssets {
                     for (String suffix : SUFFIXES) {
                         String file = pin + suffix + ".png";
                         if (refresh(context, "res/skins/default/" + file, new File(skins, file))) refreshed++;
+                    }
+                }
+                // The map colours the patch writes into the lua skins.
+                for (String directory : SKIN_DIRECTORIES) {
+                    for (String variant : SKIN_VARIANTS) {
+                        String file = directory + "skin_values." + variant + ".lua";
+                        if (new File(skins, file).isFile()
+                                && refresh(context, "res/skins/default/" + file, new File(skins, file))) refreshed++;
                     }
                 }
             }

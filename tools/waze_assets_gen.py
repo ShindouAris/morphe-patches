@@ -29,6 +29,8 @@ SKIP_PREFIXES = (
     "wz_mod_version.txt",
     "wz_ota_build_id.txt",
     "res/godot/",          # the speedometer patch of the PCK is made by its own step
+    "res/skins/default/skin_values.",   # the map colours are written into Waze's own lua (waze_skin_gen.py)
+    "wz_map_skins/",       # the Mod's other map skins, which nothing loads
 )
 KEEP = (
     "gw_fonts/JetBrains_Mono/static/JetBrainsMono-Bold.ttf",
