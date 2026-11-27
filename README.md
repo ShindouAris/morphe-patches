@@ -51,11 +51,12 @@ and Brazilian Portuguese.
 ## Patches list
 
 <!-- PATCHES_START -->
-> **[v1.3.0-dev.1](https://github.com/ShindouAris/morphe-patches/releases/tag/v1.3.0-dev.1)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`dev`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**31 patches** across **1 app**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
+> **[v1.3.0-dev.1](https://github.com/ShindouAris/morphe-patches/releases/tag/v1.3.0-dev.1)**&nbsp;&nbsp;&middot;&nbsp;&nbsp;`dev`&nbsp;&nbsp;&middot;&nbsp;&nbsp;**34 patches** across **2 apps**&nbsp;&nbsp;&middot;&nbsp;&nbsp;[Full details](PATCHES.md)
 
 | # | App | Patches | Version | Package |
 |---|---|---|---|---|
 | 1 | [**Google Maps**](PATCHES.md#google-maps-comgoogleandroidappsmaps) | 31 | `26.44.06.1006895251` | [`com.google.android.apps.maps`](https://play.google.com/store/apps/details?id=com.google.android.apps.maps) |
+| 2 | [**Waze**](PATCHES.md#waze-comwaze) | 3 | `5.27.90.900` | [`com.waze`](https://play.google.com/store/apps/details?id=com.waze) |
 <!-- PATCHES_END -->
 
 &nbsp;
