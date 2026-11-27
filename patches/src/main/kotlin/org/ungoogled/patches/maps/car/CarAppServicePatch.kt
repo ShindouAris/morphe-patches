@@ -28,6 +28,9 @@ private const val SERVICE = "org.ungoogled.car.MapsCarAppService"
 private const val WAZE_MOD_BIND = "com.wazemod.api.action.BIND"
 private const val WAZE_MOD_REQUEST_ACCESS = "com.wazemod.api.action.REQUEST_ACCESS"
 private const val WAZE_MOD_ACCESS_ACTIVITY = "org.ungoogled.car.WazeModAccessActivity"
+/** xADAS' data link: the distance to the vehicle ahead, which the overlay shows. */
+private const val XADAS_PACKAGE = "com.kaibatech.drivedeck.xadas"
+private const val XADAS_BIND = "com.kaibatech.drivedeck.xadas.action.BIND_LINK"
 /** The overlay's icons in the patches file (from WazeHUD), listed in index.txt. */
 private const val WAZE_ICONS = "/maps/waze"
 
@@ -113,6 +116,15 @@ private val carAppManifestPatch = resourcePatch(
                 intent.appendChild(intentAction)
                 queries.appendChild(intent)
             }
+            // xADAS (Pro) shares the distance to the vehicle ahead the same way (https://github.com/drivedeck/link).
+            val xadasPackage = manifest.createElement("package")
+            xadasPackage.setAttribute("android:name", XADAS_PACKAGE)
+            queries.appendChild(xadasPackage)
+            val xadasIntent = manifest.createElement("intent")
+            val xadasAction = manifest.createElement("action")
+            xadasAction.setAttribute("android:name", XADAS_BIND)
+            xadasIntent.appendChild(xadasAction)
+            queries.appendChild(xadasIntent)
             root.insertBefore(queries, application)
 
             val access = manifest.createElement("activity")

@@ -10,6 +10,16 @@ import android.content.SharedPreferences;
 public final class OverlaySettings implements SharedPreferences.OnSharedPreferenceChangeListener {
     private static final String PREFERENCES = "ungoogled_car_overlay";
     private static final String ENABLED = "enabled", POSITION = "position", SCALE = "scale", STYLE = "style";
+    private static final String XADAS = "xadas";
+
+    /** Whether the distance to the vehicle ahead from xADAS Pro shows too. */
+    public static boolean xadas(Context context) {
+        return preferences(context).getBoolean(XADAS, true);
+    }
+
+    public static void setXadas(Context context, boolean on) {
+        preferences(context).edit().putBoolean(XADAS, on).apply();
+    }
 
     /** Left, beside Maps' column of buttons and under its search bar or turn card. */
     public static final int LEFT = 0;
@@ -69,6 +79,7 @@ public final class OverlaySettings implements SharedPreferences.OnSharedPreferen
     volatile int position;
     volatile int scale;
     volatile int style;
+    volatile boolean xadas;
 
     /** Follows the settings; [onChange] runs when they change. */
     OverlaySettings(Context context, Runnable onChange) {
@@ -87,6 +98,7 @@ public final class OverlaySettings implements SharedPreferences.OnSharedPreferen
         position = position(context);
         scale = scale(context);
         style = style(context);
+        xadas = xadas(context);
     }
 
     @Override

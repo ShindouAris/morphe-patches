@@ -47,6 +47,14 @@ final class WazeOverlay implements FrameRelay.Overlay {
         this.data = data;
     }
 
+    /** The distance to the vehicle ahead from xADAS, in metres (-1: none), and its verdict. */
+    private volatile int leadMeters = -1, leadVerdict;
+
+    void lead(int meters, int verdict) {
+        leadMeters = meters;
+        leadVerdict = verdict;
+    }
+
     /** Where the overlay was last laid out, in Maps' display coordinates; null before. */
     private volatile Rect bounds;
     /** How far from its place it is drawn, to clear Maps' cards; null: not drawn. */
@@ -80,7 +88,10 @@ final class WazeOverlay implements FrameRelay.Overlay {
     @Override
     public void draw(Canvas canvas, Rect area, Rect safe, float density) {
         WazeData data = this.data;
-        if (data == null || !settings.enabled) return;
+        int leadMeters = settings.xadas ? this.leadMeters : -1;
+        if (data == null && leadMeters < 0 || !settings.enabled) return;
+        if (data == null) data = WazeData.NONE;
+        boolean waze = data != WazeData.NONE;
         loadFonts();
         float scale = settings.scale / 100f;
         int style = settings.style;
@@ -92,11 +103,15 @@ final class WazeOverlay implements FrameRelay.Overlay {
         boolean showCurrent = style != OverlaySettings.STYLE_SIGNS;
         float clusterWidth = showCurrent ? Math.max(diameter, currentLeft + currentDiameter) : diameter;
         float clusterHeight = showCurrent ? Math.max(diameter, currentDiameter) : diameter;
+        if (!waze) {
+            clusterWidth = 0;
+            clusterHeight = 0;
+        }
         Bitmap average = data.averageZone ? icon("alerts/no_passing_in.png") : null;
         float gap = Math.max(3, 6 * density * scale);
-        float signsWidth = clusterWidth + (average == null ? 0 : gap + diameter);
+        float signsWidth = waze ? clusterWidth + (average == null ? 0 : gap + diameter) : 0;
 
-        // The alert card under it.
+        // The cards under it: the nearest alert, then the vehicle ahead (xADAS).
         WazeData.Alert alert = data.alert;
         String distance = alert == null ? null : distance(alert.distance);
         float cardHeight = diameter * 0.55f;
@@ -105,7 +120,21 @@ final class WazeOverlay implements FrameRelay.Overlay {
             digits(cardHeight * 0.5f);
             cardWidth = cardHeight * 0.2f + cardHeight * 0.75f + cardHeight * 0.2f + paint.measureText(distance) + cardHeight * 0.3f;
         }
-        float width = Math.max(signsWidth, cardWidth);
+        boolean showLead = leadMeters >= 0;
+        float leadSize = showLead ? Math.max(diameter * 1.2f, 64) : 0;
+        float width = Math.max(signsWidth, Math.max(cardWidth, leadSize));
+
+        // Where each part starts, from the top of the overlay.
+        float used = clusterHeight;
+        float alertTop = 0, leadTop = 0;
+        if (alert != null) {
+            alertTop = used + (used > 0 ? gap : 0);
+            used = alertTop + cardHeight;
+        }
+        if (showLead) {
+            leadTop = used + (used > 0 ? gap : 0);
+            used = leadTop + leadSize;
+        }
 
         boolean right = settings.position == OverlaySettings.TOP_RIGHT;
         float margin = 12 * density;
@@ -114,7 +143,7 @@ final class WazeOverlay implements FrameRelay.Overlay {
         float signsLeft = right ? left + width - signsWidth : left;
 
         // Where it is, in Maps' display coordinates, for the check of what covers it.
-        float height = clusterHeight + (alert != null ? gap + cardHeight : 0);
+        float height = used;
         bounds = new Rect((int) (left - area.left), (int) (top - area.top),
                 (int) (left - area.left + width), (int) (top - area.top + height));
         android.graphics.Point shift = this.shift;
@@ -123,33 +152,30 @@ final class WazeOverlay implements FrameRelay.Overlay {
         signsLeft += shift.x;
         top += shift.y;
 
-        drawLimit(canvas, signsLeft, top, diameter, data.limit);
-        boolean over = data.limit >= 10 && data.speed > data.limit || data.overspeed;
-        if (style == OverlaySettings.STYLE_BADGE) {
-            drawBadge(canvas, signsLeft + currentLeft, top, currentDiameter, data.speed, over);
-        } else if (style == OverlaySettings.STYLE_DIAL) {
-            drawDial(canvas, signsLeft + currentLeft, top, currentDiameter, data.speed, data.limit, over);
+        if (waze) {
+            drawLimit(canvas, signsLeft, top, diameter, data.limit);
+            boolean over = data.limit >= 10 && data.speed > data.limit || data.overspeed;
+            if (style == OverlaySettings.STYLE_BADGE) {
+                drawBadge(canvas, signsLeft + currentLeft, top, currentDiameter, data.speed, over);
+            } else if (style == OverlaySettings.STYLE_DIAL) {
+                drawDial(canvas, signsLeft + currentLeft, top, currentDiameter, data.speed, data.limit, over);
+            }
+            if (average != null) {
+                canvas.drawBitmap(average, null, new RectF(signsLeft + clusterWidth + gap, top,
+                        signsLeft + clusterWidth + gap + diameter, top + diameter), image);
+            }
         }
-        if (average != null) {
-            canvas.drawBitmap(average, null, new RectF(signsLeft + clusterWidth + gap, top,
-                    signsLeft + clusterWidth + gap + diameter, top + diameter), image);
+
+        if (showLead) {
+            float dialLeft = right ? left + width - leadSize : left;
+            drawLead(canvas, dialLeft, top + leadTop, leadSize, leadMeters, leadVerdict, data.speed);
         }
 
         if (alert != null) {
-            float cardTop = top + clusterHeight + gap;
+            float cardTop = top + alertTop;
             float cardLeft = right ? left + width - cardWidth : left;
             RectF card = new RectF(cardLeft, cardTop, cardLeft + cardWidth, cardTop + cardHeight);
-            float corner = cardHeight * 0.25f;
-            paint.setPathEffect(null);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setColor(0xE61B1F29);
-            canvas.drawRoundRect(card, corner, corner, paint);
-            paint.setStyle(Paint.Style.STROKE);
-            paint.setStrokeWidth(Math.max(1.5f, cardHeight * 0.04f));
-            paint.setColor(0xCCE0E0E0);
-            canvas.drawRoundRect(card, corner, corner, paint);
-            paint.setStyle(Paint.Style.FILL);
-            paint.setStrokeWidth(0);
+            drawCard(canvas, card, cardHeight, 0xCCE0E0E0);
             float iconSize = cardHeight * 0.75f;
             RectF box = new RectF(card.left + cardHeight * 0.2f, card.centerY() - iconSize / 2,
                     card.left + cardHeight * 0.2f + iconSize, card.centerY() + iconSize / 2);
@@ -162,6 +188,93 @@ final class WazeOverlay implements FrameRelay.Overlay {
             canvas.drawText(distance, box.right + cardHeight * 0.2f, card.centerY() - (metrics.ascent + metrics.descent) / 2, paint);
             paint.setTextAlign(Paint.Align.CENTER);
         }
+    }
+
+    /** A dark rounded card with a thin rim of [rim]. */
+    private void drawCard(Canvas canvas, RectF card, float cardHeight, int rim) {
+        float corner = cardHeight * 0.25f;
+        paint.setPathEffect(null);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0xE61B1F29);
+        canvas.drawRoundRect(card, corner, corner, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(Math.max(1.5f, cardHeight * 0.04f));
+        paint.setColor(rim);
+        canvas.drawRoundRect(card, corner, corner, paint);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(0);
+    }
+
+    /**
+     * The minimum safe distance to the vehicle ahead, in metres, by speed in km/h (the Vietnamese rule: 35 m at 60,
+     * 55 m up to 80, 70 m up to 100, 100 m up to 120). Under 60 the rule leaves it to the driver: it falls in step
+     * with the speed here. xADAS does not share its own minimum.
+     */
+    static float minimumDistance(int speed) {
+        if (speed > 100) return 100;
+        if (speed > 80) return 70;
+        if (speed > 60) return 55;
+        return 35f * speed / 60f;
+    }
+
+    /**
+     * The distance to the vehicle ahead, as xADAS' own small window draws it (xadas-hud-link, docs/hien-thi.md, round
+     * screen 240x240, scaled to [size]): a 300 degree ring from 7 o'clock over the top to 5 o'clock, the distance scale
+     * from 0 to twice the minimum, a red mark for the minimum at the top, the value arc coloured by the verdict, the
+     * number and "m" in the middle, "xADAS" over it and the speed under it.
+     */
+    private void drawLead(Canvas canvas, float left, float top, float size, int meters, int verdict, int speed) {
+        float u = size / 240f, cx = left + size / 2, cy = top + size / 2;
+        int color = verdict == 1 ? 0xFF9BE89B : verdict == 2 ? 0xFFFF5252 : 0xFF8C96A0;
+        paint.setPathEffect(null);
+        paint.setStyle(Paint.Style.FILL);
+        paint.setColor(0xF0000000);
+        canvas.drawCircle(cx, cy, size / 2, paint);
+
+        float minimum = speed >= 10 ? minimumDistance(speed) : 0;
+        RectF ring = new RectF(cx - 100 * u, cy - 100 * u, cx + 100 * u, cy + 100 * u);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(12 * u);
+        paint.setStrokeCap(Paint.Cap.ROUND);
+        paint.setColor(0xFF1F1F1F);
+        canvas.drawArc(ring, 120, 300, false, paint);
+        if (minimum > 0) {
+            paint.setColor(0xFF571C1C);
+            canvas.drawArc(ring, 120, 150, false, paint);
+            float share = Math.max(0.02f, Math.min(1f, meters / (2 * minimum)));
+            paint.setColor(color);
+            canvas.drawArc(ring, 120, 300 * share, false, paint);
+            paint.setStrokeCap(Paint.Cap.BUTT);
+            paint.setStrokeWidth(5 * u);
+            paint.setColor(0xFFFF5252);
+            canvas.drawLine(cx, cy - 109 * u, cx, cy - 91 * u, paint);
+        }
+        paint.setStrokeCap(Paint.Cap.BUTT);
+        if (verdict == 2) {
+            paint.setStrokeWidth(3 * u);
+            paint.setColor(0xFF8C2D2D);
+            canvas.drawCircle(cx, cy, 118.5f * u, paint);
+        }
+
+        paint.setStyle(Paint.Style.FILL);
+        paint.setStrokeWidth(0);
+        paint.setTextAlign(Paint.Align.CENTER);
+        paint.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        paint.setTextSize(15 * u);
+        paint.setColor(0xFF6B737C);
+        canvas.drawText("xADAS", cx, top + 62 * u, paint);
+        paint.setTextSize((meters >= 100 ? 78 : 92) * u);
+        paint.setColor(color);
+        centered(canvas, String.valueOf(meters), cx, top + 113 * u);
+        paint.setTextSize(24 * u);
+        paint.setColor((color & 0x00FFFFFF) | 0xBF000000);
+        canvas.drawText("m", cx, top + 172 * u, paint);
+        if (speed >= 0) {
+            paint.setTextSize(20 * u);
+            paint.setColor(0xFFA3ACB5);
+            canvas.drawText(speed + " km/h", cx, top + 226 * u, paint);
+        }
+        paint.setTypeface(Typeface.DEFAULT);
     }
 
     /** The maximum speed sign: a red disc with an inset white face and the limit ("--" when none). */

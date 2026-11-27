@@ -37,6 +37,9 @@ final class WazeData {
         this.alert = alert;
     }
 
+    /** No Waze Mod data: the overlay then draws only what other sources (xADAS) give. */
+    static final WazeData NONE = new WazeData(-1, 0, false, false, null);
+
     static WazeData from(Bundle snapshot) {
         int speed = snapshot.containsKey("speed") ? Math.max(0, snapshot.getInt("speed")) : -1;
         Alert nearest = null;

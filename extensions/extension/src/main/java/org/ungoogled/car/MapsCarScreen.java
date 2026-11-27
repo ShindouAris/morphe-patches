@@ -37,6 +37,7 @@ final class MapsCarScreen extends Screen {
 
     private final ProjectionHost maps;
     private final WazeModClient waze;
+    private final XadasClient xadas;
     private final OverlaySettings settings;
     private final WazeOverlay overlay;
     private final Handler main = new Handler(Looper.getMainLooper());
@@ -103,6 +104,10 @@ final class MapsCarScreen extends Screen {
                 main.post(() -> askAccess(request));
             }
         });
+        xadas = new XadasClient(context, (meters, verdict) -> {
+            overlay.lead(meters, verdict);
+            maps.redraw();
+        });
         maps.setKeyboard((field, info) -> {
             // One keyboard at a time, over the map.
             if (getScreenManager().getTop() != this) return;
@@ -116,6 +121,7 @@ final class MapsCarScreen extends Screen {
                 WazeModAccessActivity.onGranted = waze::connect;
                 main.post(watchPanels);
                 waze.connect();
+                xadas.start();
             }
 
             @Override
@@ -123,6 +129,7 @@ final class MapsCarScreen extends Screen {
                 Log.i(TAG, "screen destroyed");
                 WazeModAccessActivity.onGranted = null;
                 waze.close();
+                xadas.close();
                 main.removeCallbacks(watchPanels);
                 settings.close();
                 maps.close();
@@ -146,12 +153,12 @@ final class MapsCarScreen extends Screen {
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT);
         notifications.notify(ACCESS_NOTIFICATION, new Notification.Builder(app, ACCESS_CHANNEL)
                 .setSmallIcon(android.R.drawable.ic_dialog_info)
-                .setContentTitle("Cho phép Maps đọc dữ liệu Waze Mod")
-                .setContentText("Chạm để mở màn hình cấp quyền của Waze Mod")
+                .setContentTitle(org.ungoogled.ui.Vi.t("Allow Maps to read Waze Mod data"))
+                .setContentText(org.ungoogled.ui.Vi.t("Tap to open Waze Mod's permission screen"))
                 .setContentIntent(open)
                 .setAutoCancel(true)
                 .build());
-        CarToast.makeText(getCarContext(), "Mở điện thoại để cho phép Maps đọc dữ liệu Waze Mod",
+        CarToast.makeText(getCarContext(), org.ungoogled.ui.Vi.t("Open the phone to let Maps read Waze Mod data"),
                 CarToast.LENGTH_LONG).show();
     }
 

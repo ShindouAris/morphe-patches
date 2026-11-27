@@ -2,6 +2,7 @@ package org.ungoogled.ui;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.content.Intent;
 import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
@@ -41,6 +42,10 @@ public final class CustomizationActivity extends Activity {
             PAGE_AUTO = "auto";
 
     private static String title(String page) {
+        return Vi.t(englishTitle(page));
+    }
+
+    private static String englishTitle(String page) {
         if (PAGE_POWER.equals(page)) return "Power Saving Options";
         if (PAGE_WAZE.equals(page)) return "Speeding chime";
         if (PAGE_UI.equals(page)) return "UI";
@@ -55,11 +60,12 @@ public final class CustomizationActivity extends Activity {
 
     private String proxySummary() {
         String effective = Shapes.proxy(this);
-        return effective.isEmpty() ? "Off" : effective;
+        return Vi.t(effective.isEmpty() ? "Off" : effective);
     }
 
     @Override protected void onResume() {
         super.onResume();
+        refreshAccess();   // back from Waze Mod's or xADAS' screen: the answer may have changed
         if (proxySub != null) proxySub.setText(proxySummary());
         if (playingMediaSub != null) playingMediaSub.setText(playingMediaSummary(Screens.declared(this, MediaListener.class)));
     }
@@ -112,7 +118,7 @@ public final class CustomizationActivity extends Activity {
         int closeRes = getResources().getIdentifier("gs_close_vd_theme_24", "drawable", getPackageName());
         close.setImageResource(closeRes != 0 ? closeRes : android.R.drawable.ic_menu_close_clear_cancel);
         close.setColorFilter(text());
-        close.setContentDescription("Close");
+        close.setContentDescription(Vi.t("Close"));
         close.setOnClickListener(v -> finish());
         header.addView(close, new android.widget.FrameLayout.LayoutParams(dp(24), dp(24), Gravity.END | Gravity.CENTER_VERTICAL));
         root.addView(header);
@@ -157,21 +163,46 @@ public final class CustomizationActivity extends Activity {
                 Shapes.playingMediaPatched(), "Follow playing media",
                 Shapes.anyMediaPatched(), "Media apps in navigation"));
         section(body, PAGE_AUTO, names(
-                Screens.declared(this, org.ungoogled.car.MapsCarAppService.class), "Waze Mod overlay"));
+                Screens.declared(this, org.ungoogled.car.MapsCarAppService.class), "Waze Mod",
+                Screens.declared(this, org.ungoogled.car.MapsCarAppService.class), "xADAS"));
     }
 
     /** Android Auto: the Waze Mod overlay over Maps' car UI. The car screen follows these at once. */
     private void buildAutoPage(LinearLayout body) {
-        Switch on = new Switch(this);
-        on.setChecked(OverlaySettings.enabled(this));
-        body.addView(toggleRow("Waze Mod overlay", "Speed, speed limit and the next alert from Waze Mod over the map", on));
-        on.setOnCheckedChangeListener((CompoundButton b, boolean checked) -> OverlaySettings.setEnabled(this, checked));
+        // Waze Mod's Data API: Maps asks Waze Mod's own screen for permission, once.
+        LinearLayout wazeRow = rowBase("Request Waze Mod permission",
+                "Lets Maps read speed, speed limit and alerts from Waze Mod, for the overlay on Android Auto");
+        wazeRow.setOnClickListener(v -> {
+            Intent request = org.ungoogled.car.WazeModAccessActivity.request(this);
+            if (request == null) {
+                Toast.makeText(this, Vi.t("Waze Mod with the Data API is not installed"), Toast.LENGTH_LONG).show();
+                return;
+            }
+            startActivity(request);
+        });
+        body.addView(wazeRow);
+        wazeSub = (TextView) ((LinearLayout) wazeRow.getChildAt(0)).getChildAt(1);
+
+        // xADAS (Pro): the distance to the vehicle ahead. xADAS asks the user itself once Maps connects.
+        LinearLayout xadasRow = rowBase("Open xADAS",
+                "Distance to the vehicle ahead. In xADAS Pro turn on sharing with other apps, then allow Maps");
+        xadasRow.setOnClickListener(v -> {
+            Intent open = getPackageManager().getLaunchIntentForPackage("com.kaibatech.drivedeck.xadas");
+            if (open == null) {
+                Toast.makeText(this, Vi.t("xADAS is not installed"), Toast.LENGTH_LONG).show();
+                return;
+            }
+            startActivity(open);
+        });
+        body.addView(xadasRow);
+        xadasSub = (TextView) ((LinearLayout) xadasRow.getChildAt(0)).getChildAt(1);
+        refreshAccess();
 
         LinearLayout styleRow = rowBase("Style", OverlaySettings.STYLE_LABELS[styleIndex()]);
         TextView styleSub = (TextView) ((LinearLayout) styleRow.getChildAt(0)).getChildAt(1);
         styleRow.setOnClickListener(v -> choose("Style", OverlaySettings.STYLE_LABELS, styleIndex(), which -> {
             OverlaySettings.setStyle(this, OverlaySettings.STYLES[which]);
-            styleSub.setText(OverlaySettings.STYLE_LABELS[which]);
+            styleSub.setText(Vi.t(OverlaySettings.STYLE_LABELS[which]));
         }));
         body.addView(styleRow);
 
@@ -180,7 +211,7 @@ public final class CustomizationActivity extends Activity {
         positionRow.setOnClickListener(v -> choose("Position", OverlaySettings.POSITION_LABELS,
                 OverlaySettings.position(this), which -> {
                     OverlaySettings.setPosition(this, which);
-                    positionSub.setText(OverlaySettings.POSITION_LABELS[which]);
+                    positionSub.setText(Vi.t(OverlaySettings.POSITION_LABELS[which]));
                 }));
         body.addView(positionRow);
 
@@ -201,6 +232,30 @@ public final class CustomizationActivity extends Activity {
         body.addView(sizeRow);
     }
 
+    private TextView wazeSub, xadasSub;
+    private static final String WAZE_DESC = "Lets Maps read speed, speed limit and alerts from Waze Mod, for the overlay on Android Auto";
+    private static final String XADAS_DESC = "Distance to the vehicle ahead. In xADAS Pro turn on sharing with other apps, then allow Maps";
+
+    /** Asks Waze Mod and xADAS whether Maps is allowed, and shows the answers under their rows. */
+    private void refreshAccess() {
+        if (wazeSub == null || xadasSub == null) return;
+        org.ungoogled.car.AccessCheck.waze(this, access -> showAccess(wazeSub, access, WAZE_DESC, "Not allowed yet"));
+        org.ungoogled.car.AccessCheck.xadas(this, access -> showAccess(xadasSub, access, XADAS_DESC,
+                "Not allowed, or sharing is off in xADAS Pro"));
+    }
+
+    private void showAccess(TextView sub, int access, String description, String notAllowed) {
+        if (isFinishing() || isDestroyed()) return;
+        String status;
+        switch (access) {
+            case org.ungoogled.car.AccessCheck.ALLOWED: status = "✓ " + Vi.t("Allowed"); break;
+            case org.ungoogled.car.AccessCheck.NOT_ALLOWED: status = "✗ " + Vi.t(notAllowed); break;
+            case org.ungoogled.car.AccessCheck.NOT_INSTALLED: status = "✗ " + Vi.t("Not installed"); break;
+            default: status = "? " + Vi.t("Could not check"); break;
+        }
+        sub.setText(status + "\n" + Vi.t(description));
+    }
+
     private int styleIndex() {
         int style = OverlaySettings.style(this);
         for (int i = 0; i < OverlaySettings.STYLES.length; i++) if (OverlaySettings.STYLES[i] == style) return i;
@@ -218,10 +273,10 @@ public final class CustomizationActivity extends Activity {
     /** "A, B & C" of the names whose patch is present, from (present, name) pairs; null when none is. */
     private static String names(Object... pairs) {
         java.util.List<String> present = new java.util.ArrayList<>();
-        for (int i = 0; i + 1 < pairs.length; i += 2) if ((Boolean) pairs[i]) present.add((String) pairs[i + 1]);
+        for (int i = 0; i + 1 < pairs.length; i += 2) if ((Boolean) pairs[i]) present.add(Vi.t((String) pairs[i + 1]));
         if (present.isEmpty()) return null;
         if (present.size() == 1) return present.get(0);
-        return String.join(", ", present.subList(0, present.size() - 1)) + " & " + present.get(present.size() - 1);
+        return String.join(", ", present.subList(0, present.size() - 1)) + Vi.t(" & ") + present.get(present.size() - 1);
     }
 
     /** UI: how Maps looks. */
@@ -349,16 +404,16 @@ public final class CustomizationActivity extends Activity {
             final int inUse = java.util.Arrays.asList(sources).indexOf(Shapes.locationSourceInUse(this));
             View locRow = row("Location source", options[inUse]);
             locRow.setOnClickListener(v -> {
-                ChoiceAdapter adapter = new ChoiceAdapter(this, options, usable, text(), dark ? 0xFF6B6B6B : 0xFFB0B0B0);
+                ChoiceAdapter adapter = new ChoiceAdapter(this, Vi.t(options), usable, text(), dark ? 0xFF6B6B6B : 0xFFB0B0B0);
                 new AlertDialog.Builder(this, dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
-                        .setTitle("Location source")
+                        .setTitle(Vi.t("Location source"))
                         .setSingleChoiceItems(adapter, inUse, (d, which) -> {
                             d.dismiss();
                             if (which == inUse) return;
                             Shapes.setLocationSource(this, sources[which]);
                             restartSoon(v);
                         })
-                        .setNegativeButton("Cancel", null)
+                        .setNegativeButton(Vi.t("Cancel"), null)
                         .show();
             });
             body.addView(locRow);
@@ -433,11 +488,12 @@ public final class CustomizationActivity extends Activity {
 
     private String mediaAppsSummary() {
         java.util.List<String> chosen = MediaApps.chosen(this);
-        if (chosen.isEmpty()) return "All, the one playing first";
+        if (chosen.isEmpty()) return Vi.t("All, the one playing first");
         java.util.List<String> names = new java.util.ArrayList<>();
         for (String p : chosen) names.add(MediaApps.label(this, p));
         if (names.size() <= 3) return String.join(", ", names);
-        return String.join(", ", names.subList(0, 2)) + " & " + (names.size() - 2) + " more";
+        return String.join(", ", names.subList(0, 2)) + Vi.t(" & ")
+                + (Vi.on() ? (names.size() - 2) + " ứng dụng khác" : (names.size() - 2) + " more");
     }
 
     /** Speeding chime, opened from its own account sheet row. */
@@ -448,7 +504,7 @@ public final class CustomizationActivity extends Activity {
             chimeRow.setOnClickListener(v -> choose("Speeding chime", CHIME_LABELS, Shapes.speedingChime(this), which -> {
                 // read on every speedometer change, so no restart
                 Shapes.setSpeedingChime(this, which);
-                chimeSub.setText(CHIME_LABELS[which]);
+                chimeSub.setText(Vi.t(CHIME_LABELS[which]));
             }));
             body.addView(chimeRow);
         }
@@ -480,21 +536,23 @@ public final class CustomizationActivity extends Activity {
         for (int i = 0; i < PowerSaving.IDLE_CHOICES.length; i++) {
             if (PowerSaving.IDLE_CHOICES[i] == seconds) return IDLE_LABELS[i];
         }
-        return seconds > 0 ? "After " + seconds + " seconds" : "Off";
+        return seconds > 0 ? Vi.t("After ") + seconds + Vi.t(" seconds") : "Off";
     }
 
     private static final String[] WAKE_LABELS = {"Off", "Back after 30 seconds", "Back after 1 minute", "Back after 2 minutes", "Back after 5 minutes"};
 
     private static String wakeSummary(int seconds) {
         for (int i = 1; i < PowerSaving.WAKE_CHOICES.length; i++) {
-            if (PowerSaving.WAKE_CHOICES[i] == seconds) return PowerSaving.WAKE_METERS + " m before a turn, " + WAKE_LABELS[i].toLowerCase(java.util.Locale.ROOT);
+            if (PowerSaving.WAKE_CHOICES[i] == seconds) {
+                return PowerSaving.WAKE_METERS + Vi.t(" m before a turn, ") + Vi.t(WAKE_LABELS[i]).toLowerCase(java.util.Locale.ROOT);
+            }
         }
-        return seconds > 0 ? PowerSaving.WAKE_METERS + " m before a turn, back after " + seconds + " seconds" : "Off";
+        return seconds > 0 ? PowerSaving.WAKE_METERS + Vi.t(" m before a turn, ") + Vi.t("back after ") + seconds + Vi.t(" seconds") : "Off";
     }
 
     private static String lowFpsSummary(int mode) {
         if (mode <= 0 || mode >= LOW_FPS_LABELS.length) return "Off";
-        return LOW_FPS_LABELS[mode] + ": 15 fps and 30 Hz, as on the power saving screen";
+        return Vi.t(LOW_FPS_LABELS[mode]) + Vi.t(": 15 fps and 30 Hz, as on the power saving screen");
     }
 
     /** Power Saving Options: Power saving mode itself, then the options around it. */
@@ -524,7 +582,7 @@ public final class CustomizationActivity extends Activity {
             choose("Auto-switch when idle", IDLE_LABELS, current, which -> {
                 // read on every navigation tick, so no restart
                 PowerSaving.setIdleSeconds(this, PowerSaving.IDLE_CHOICES[which]);
-                idleSub.setText(IDLE_LABELS[which]);
+                idleSub.setText(Vi.t(IDLE_LABELS[which]));
             });
         });
         body.addView(idleRow);
@@ -582,12 +640,12 @@ public final class CustomizationActivity extends Activity {
     /** A single-choice dialog in Maps' theme, as the Location source row uses. */
     private void choose(String title, String[] labels, int checked, Choice then) {
         new AlertDialog.Builder(this, dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
-                .setTitle(title)
-                .setSingleChoiceItems(labels, checked, (d, which) -> {
+                .setTitle(Vi.t(title))
+                .setSingleChoiceItems(Vi.t(labels), checked, (d, which) -> {
                     d.dismiss();
                     then.chosen(which);
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Vi.t("Cancel"), null)
                 .show();
     }
 
@@ -598,14 +656,14 @@ public final class CustomizationActivity extends Activity {
         boolean[] checked = new boolean[labels.length];
         for (int i = 0; i < labels.length; i++) checked[i] = (mask & (1 << i)) != 0;
         new AlertDialog.Builder(this, dark ? android.R.style.Theme_DeviceDefault_Dialog_Alert : android.R.style.Theme_DeviceDefault_Light_Dialog_Alert)
-                .setTitle(title)
+                .setTitle(Vi.t(title))
                 .setMultiChoiceItems(labels, checked, (d, which, on) -> checked[which] = on)
-                .setPositiveButton("OK", (d, w) -> {
+                .setPositiveButton(Vi.t("OK"), (d, w) -> {
                     int out = 0;
                     for (int i = 0; i < checked.length; i++) if (checked[i]) out |= 1 << i;
                     then.chosen(out);
                 })
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(Vi.t("Cancel"), null)
                 .show();
     }
 
@@ -632,14 +690,14 @@ public final class CustomizationActivity extends Activity {
     }
 
     private void restartSoon(View v) {
-        Toast.makeText(this, "Restarting Maps to apply", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, Vi.t("Restarting Maps to apply"), Toast.LENGTH_SHORT).show();
         v.postDelayed(() -> Shapes.restart(this), 600);
     }
 
     /** [title 16 sp / summary 14 sp] -- the Settings row, text only. */
     private String playingMediaSummary(boolean declared) {
-        if (!declared) return "Not on a root mount install";
-        return PlayingMedia.allowed(this) ? "On" : "Needs notification access";
+        if (!declared) return Vi.t("Not on a root mount install");
+        return Vi.t(PlayingMedia.allowed(this) ? "On" : "Needs notification access");
     }
 
     private LinearLayout rowBase(String label, String sub) {
@@ -651,13 +709,13 @@ public final class CustomizationActivity extends Activity {
         LinearLayout col = new LinearLayout(this);
         col.setOrientation(LinearLayout.VERTICAL);
         TextView tv = new TextView(this);
-        tv.setText(label);
+        tv.setText(Vi.t(label));
         tv.setTextColor(text());
         tv.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16);
         col.addView(tv);
         if (sub != null) {
             TextView s = new TextView(this);
-            s.setText(sub);
+            s.setText(Vi.t(sub));
             s.setTextColor(summary());
             s.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
             col.addView(s);
